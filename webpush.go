@@ -2,6 +2,7 @@ package webpush
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"net/http"
 	"net/url"
@@ -49,7 +50,7 @@ func NewWebPushClient(httpClient HTTPClient, jwtSigner auth.WebPushJwtSigner, en
 	}
 }
 
-func (c *WebPushClient) Send(payload []byte, info *WebPushInfo, options *WebPushOptions) (*http.Response, error) {
+func (c *WebPushClient) SendWithContext(ctx context.Context, payload []byte, info *WebPushInfo, options *WebPushOptions) (*http.Response, error) {
 	endpoint, err := url.Parse(info.Subscription.Endpoint)
 	if err != nil {
 		return nil, err
@@ -82,7 +83,7 @@ func (c *WebPushClient) Send(payload []byte, info *WebPushInfo, options *WebPush
 
 	body := bytes.NewReader(encrypted)
 
-	req, err := http.NewRequest("POST", info.Subscription.Endpoint, body)
+	req, err := http.NewRequestWithContext(ctx, "POST", info.Subscription.Endpoint, body)
 	if err != nil {
 		return nil, err
 	}
@@ -112,4 +113,8 @@ func (c *WebPushClient) Send(payload []byte, info *WebPushInfo, options *WebPush
 	}
 
 	return res, nil
+}
+
+func (c *WebPushClient) Send(payload []byte, info *WebPushInfo, options *WebPushOptions) (*http.Response, error) {
+	return c.SendWithContext(context.Background(), payload, info, options)
 }
