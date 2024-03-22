@@ -3,12 +3,13 @@ package auth
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	"encoding/base64"
 	"math/big"
+
+	"github.com/Firebain/webpush-go/internal/base64"
 )
 
 func DecodeVapidKeys(privateKey string, publicKey string) (*ecdsa.PrivateKey, error) {
-	pKeyBytes, err := base64.RawURLEncoding.DecodeString(publicKey)
+	pKeyBytes, err := base64.DecodeUrlBase64(publicKey)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +20,7 @@ func DecodeVapidKeys(privateKey string, publicKey string) (*ecdsa.PrivateKey, er
 	pKey.Curve = curve
 	pKey.X, pKey.Y = elliptic.Unmarshal(curve, pKeyBytes)
 
-	keyBytes, err := base64.RawURLEncoding.DecodeString(privateKey)
+	keyBytes, err := base64.DecodeUrlBase64(privateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +34,7 @@ func DecodeVapidKeys(privateKey string, publicKey string) (*ecdsa.PrivateKey, er
 }
 
 func DecodeVapidPrivateKey(privateKey string) (*ecdsa.PrivateKey, error) {
-	keyBytes, err := base64.RawURLEncoding.DecodeString(privateKey)
+	keyBytes, err := base64.DecodeUrlBase64(privateKey)
 	if err != nil {
 		return nil, err
 	}

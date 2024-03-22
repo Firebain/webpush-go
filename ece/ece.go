@@ -9,10 +9,12 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+
+	"github.com/Firebain/webpush-go/internal/base64"
 )
 
 type WebPushEncoder interface {
-	EncryptPayload(p256dh []byte, auth []byte, data []byte) ([]byte, error)
+	EncryptPayload(p256dh string, auth string, data []byte) ([]byte, error)
 }
 
 const DefaultBlockSize = 128
@@ -129,13 +131,23 @@ func (*Aes128GcmEncoder) Encrypt(
 	return recordBuf.Bytes(), err
 }
 
-func (e *Aes128GcmEncoder) EncryptPayload(p256dh []byte, auth []byte, data []byte) ([]byte, error) {
+func (e *Aes128GcmEncoder) EncryptPayload(p256dhEncoded string, authEncoded string, data []byte) ([]byte, error) {
 	if len(data) > defaultRs {
 		return nil, errors.New("payload too large")
 	}
 
+	p256dh, err := base64.DecodeUrlBase64(p256dhEncoded)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(p256dh) != 65 {
 		return nil, errors.New("invalid key length")
+	}
+
+	auth, err := base64.DecodeUrlBase64(authEncoded)
+	if err != nil {
+		return nil, err
 	}
 
 	if len(auth) != 16 {

@@ -3,7 +3,6 @@ package webpush
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -66,17 +65,11 @@ func (c *WebPushClient) SendWithContext(ctx context.Context, payload []byte, inf
 		return nil, err
 	}
 
-	p256dh, err := base64.RawURLEncoding.DecodeString(info.Subscription.Keys.P256DH)
-	if err != nil {
-		return nil, err
-	}
-
-	auth, err := base64.RawURLEncoding.DecodeString(info.Subscription.Keys.Auth)
-	if err != nil {
-		return nil, err
-	}
-
-	encrypted, err := c.encoder.EncryptPayload(p256dh, auth, []byte(payload))
+	encrypted, err := c.encoder.EncryptPayload(
+		info.Subscription.Keys.P256DH,
+		info.Subscription.Keys.Auth,
+		[]byte(payload),
+	)
 	if err != nil {
 		return nil, err
 	}
